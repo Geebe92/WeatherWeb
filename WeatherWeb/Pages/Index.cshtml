@@ -1,0 +1,61 @@
+﻿
+
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+@{
+    
+    @using Newtonsoft.Json
+    
+    string url = $"https://api.openweathermap.org/data/2.5/weather?q=Bydgoszcz,pl&APPID=616b3c6623805f4fd2ef1379813f5678";
+
+
+    string jsonResponse = "";
+    double temperature = 0;
+    int pressure = 0;
+    double windSpeed = 0;
+
+    using (var client = new System.Net.Http.HttpClient())
+    {
+        try
+        {
+            var response = await client.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                jsonResponse = await response.Content.ReadAsStringAsync();
+
+                var weatherData = JsonConvert.DeserializeObject<WeatherData>(jsonResponse);
+
+                temperature = weatherData.Main.Temperature;
+                pressure = weatherData.Main.Pressure;
+                windSpeed = weatherData.Wind.Speed;
+            }
+            else
+            {
+                Console.WriteLine("Błąd w żądaniu: " + response.StatusCode);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Błąd: " + ex.Message);
+        }
+    }
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather</title>
+</head>
+<body>
+    <h1>Weather Information</h1>
+
+    <p>Temperature: @temperature °C</p>
+    <p>Pressure: @pressure hPa</p>
+    <p>Wind Speed: @windSpeed m/s</p>
+</body>
+</html>
