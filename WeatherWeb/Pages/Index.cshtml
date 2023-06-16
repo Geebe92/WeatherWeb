@@ -1,6 +1,4 @@
-﻿
-
-@page
+﻿@page
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
@@ -11,20 +9,21 @@
     @using Newtonsoft.Json
     @using Newtonsoft.Json.Linq;
 
-
-
     string url = $"https://api.openweathermap.org/data/2.5/weather?q=Bydgoszcz,pl&APPID=616b3c6623805f4fd2ef1379813f5678";
-
 
     string jsonResponse = "";
     double temperature = 0;
     int pressure = 0;
     double windSpeed = 0;
+    int sunrise = 0;
+    int sunset = 0;
+
+    DateTimeOffset dateTimeOffset;
+    string sunriseDate = "";
+    string sunsetDate = "";
 
     using (var client = new System.Net.Http.HttpClient())
     {
-
-
         try
         {
             var response = await client.GetAsync(url);
@@ -36,8 +35,19 @@
                 var jsonObject = JObject.Parse(jsonResponse);
 
                 var main = jsonObject["main"];
-                temperature = System.Math.Round(main["temp"].Value<double>() - 273.15, 2);
+                temperature = main["temp"].Value<double>();
                 pressure = main["pressure"].Value<int>();
+
+                var sys = jsonObject["sys"];
+
+                sunrise = sys["sunrise"].Value<int>();
+                sunset = sys["sunset"].Value<int>();
+
+                dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(sunrise);
+                sunriseDate = dateTimeOffset.ToString("dd-MM-yyyy HH:mm:ss");
+
+                dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(sunset);
+                sunsetDate = dateTimeOffset.ToString("dd-MM-yyyy HH:mm:ss");
 
                 var wind = jsonObject["wind"];
                 windSpeed = wind["speed"].Value<double>();
@@ -67,5 +77,7 @@
     <p>Temperature: @temperature °C</p>
     <p>Pressure: @pressure hPa</p>
     <p>Wind Speed: @windSpeed m/s</p>
+    <p>Sunrise: @sunriseDate</p>
+    <p>Sunset: @sunsetDate</p>
 </body>
 </html>
